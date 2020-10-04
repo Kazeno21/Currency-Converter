@@ -1,55 +1,29 @@
-const axios = require ('axios');
+  
+const currencyone = document.querySelector("#currency-one");
+const Amountone = document.querySelector("#amount-one");
+const currencytwo = document.querySelector("#currency-two");
+const Amounttwo = document.querySelector("#amount-two");
+const btnSwap = document.querySelector(".btn-swap");
+const rate = document.querySelector(".swap-rate");
 
-// https://fixer.io/
-const FIXER_API_KEY = '671d60781c0f6957673ab79c0841e603';
-const FIXER_API = `http://data.fixer.io/api/latest?access_key=${FIXER_API_KEY}`;
-
-// https://restcountries.eu
-const REST_COUNTRIES_API = `https://restcountries.eu/rest/v2/currency`;
-
-//Fetch data about currencies
-const getExchangeRate = async (fromCurrency, toCurrency) => {
-    try {
-      const {data: {rates}} = await axios.get(FIXER_API);
-
-    const euro = 1/rates[fromCurrency];
-    const exchangeRate = euro * rates[toCurrency];
-
-    return exchangeRate;
-
-    } catch (error) {
-       throw new Error('Error'); 
-}}
-
-
-const getCountries = async (currencyCode) => {
-  try {
-    const {data} = await axios.get(`${REST_COUNTRIES_API}/${currencyCode}`);
-    
-    return data.map(({name})=> name);
-  } catch (error) {
-      throw new Error('Error'); 
-  }
-    
+async function update() {
+  const firstData = currencyone.value;
+  const seconeData = currencytwo.value;
+  const res = await fetch(
+    `https://api.exchangerate-api.com/v4/latest/${firstData}`
+  );
+  const data = await res.json();
+  console.log(data);
+  Amounttwo.value = (data.rates[seconeData] * Amountone.value).toFixed(2);
+  rate.textContent = `1${firstData}= ${data.rates[seconeData]}${seconeData}`;
 }
+Amountone.addEventListener("input", update);
+currencyone.addEventListener("change", update);
+currencytwo.addEventListener("change", update);
+btnSwap.addEventListener("click", (e) => {
+  const temp = currencyone.value;
+  currencyone.value = currencytwo.value;
+  currencytwo.value = temp;
+  update();
+});
 
-//Convert currency
-const convertCurrency = async(fromCurrency,toCurrency,amount) => {
-  fromCurrency = fromCurrency.toUpperCase();
-  toCurrency = toCurrency.toUpperCase();
-
-  const [exchangeRate,countries]= await Promise.all([ 
-     getExchangeRate(fromCurrency,toCurrency),
-     getCountries(toCurrency),
-  ]);
-    
-  const convertedAmount = (amount*exchangeRate).toFixed(2);
-
-  return (`${amount} ${fromCurrency} is worth ${convertedAmount} ${toCurrency}.
-            You can spend these in the following countries: ${countries}.`);
-
- }
-
- convertCurrency('AUD', 'USD', 20)
-      .then((result)=> console.log(result))
-      .catch((error)=>console.log(error));
