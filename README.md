@@ -1,2 +1,3 @@
-# Currency Convertor App
-Still under development
+# Currency Converter
+
+### My first Fetch API Project.
